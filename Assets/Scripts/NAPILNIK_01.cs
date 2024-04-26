@@ -59,7 +59,7 @@ public class NAPILNIK_01
 
         public void OnSeePlayer(Player player)
         {
-            if (player == null && _weapon == null)
+            if (player == null || _weapon == null)
             {
                 return;
             }
