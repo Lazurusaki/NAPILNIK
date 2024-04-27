@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class NAPILNIK_01
@@ -9,15 +10,25 @@ public class NAPILNIK_01
 
         public Weapon(int damage, int bullets)
         {
-            _damage = Mathf.Max(0,damage);
-            _bullets = Mathf.Max(0, bullets);
+            if (damage < 0)
+            {
+                throw new ArgumentOutOfRangeException("Damage can't be less than zero");
+            }
+
+            if (bullets < 0)
+            {
+                throw new ArgumentOutOfRangeException("Bullets can't be less than zero");
+            }
+
+            _damage = damage;
+            _bullets = bullets;
         }
 
         public void Fire(Player player)
         {
             if (player == null)
             {
-                return;
+                throw new ArgumentNullException("Player can't be null");
             }
 
             if (_bullets > 0)
@@ -39,12 +50,12 @@ public class NAPILNIK_01
 
         public void TakeDamage(int damage)
         {
-            if (damage <= 0)
+            if (damage < 0)
             {
-                return;
+                throw new ArgumentOutOfRangeException("Damage can't be less than zero");
             }
 
-            _health = Mathf.Max(0, _health - damage);
+            _health -= damage;
         }
     }
 
@@ -54,14 +65,19 @@ public class NAPILNIK_01
 
         public Bot(Weapon weapon) 
         {
+            if (weapon == null)
+            {
+                throw new ArgumentNullException("Weapon can't be null");
+            }
+
             _weapon = weapon;
         }
 
         public void OnSeePlayer(Player player)
         {
-            if (player == null || _weapon == null)
+            if (player == null)
             {
-                return;
+                throw new ArgumentNullException("Player can't be null");
             }
 
             _weapon.Fire(player);
