@@ -60,7 +60,7 @@ public class NAPILNIK_01
                 throw new ArgumentOutOfRangeException("Damage can't be less than 0");
             }
 
-            _health -= Mathf.Max(0, _health - damage);
+            _health = Mathf.Max(0, _health - damage);
         }
     }
 
