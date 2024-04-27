@@ -12,12 +12,12 @@ public class NAPILNIK_01
         {
             if (damage < 0)
             {
-                throw new ArgumentOutOfRangeException("Damage can't be less than zero");
+                throw new ArgumentOutOfRangeException("Damage can't be less than 0");
             }
 
             if (bullets < 0)
             {
-                throw new ArgumentOutOfRangeException("Bullets can't be less than zero");
+                throw new ArgumentOutOfRangeException("Bullets can't be less than 0");
             }
 
             _damage = damage;
@@ -45,14 +45,19 @@ public class NAPILNIK_01
 
         public Player(int health)
         {
-            _health = Mathf.Max(0, health);
+            if (_health <= 0) 
+            {
+                throw new ArgumentOutOfRangeException("Health can't be less than 1");
+            }
+
+            _health = health;
         }
 
         public void TakeDamage(int damage)
         {
             if (damage < 0)
             {
-                throw new ArgumentOutOfRangeException("Damage can't be less than zero");
+                throw new ArgumentOutOfRangeException("Damage can't be less than 0");
             }
 
             _health -= damage;
