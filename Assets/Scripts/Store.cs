@@ -18,36 +18,22 @@ public class Store : MonoBehaviour
             _warehouse = warehouse;
         }
 
-        public void AddToCart(Good good, int count, Cart cart)
+        public Cart Cart()
         {
-            if (_warehouse.Goods.ContainsKey(good))
-            {
-                if (_warehouse.Goods[good] >= count)
-                {
-                    cart.Add(good, count);
-                    _warehouse.Remove(good, count);
-                }
-                else
-                {
-                    print("Noot enought goods available");
-                }
-            }
-            else
-            {
-                print(good.Name + " is not available");
-            }
-        }   
+            return new Cart(_warehouse);
+        }        
     }
 
     class Warehouse
     {
         private Dictionary<Good, int> _goods;
 
-        public Dictionary<Good, int> Goods => _goods;
+        public readonly Dictionary<Good, int> Goods;
 
         public Warehouse()
         {
             _goods = new Dictionary<Good, int>();
+            Goods = _goods;
         }
 
         public void Delive(Good good, int count)
@@ -84,62 +70,63 @@ public class Store : MonoBehaviour
                 throw new ArgumentOutOfRangeException("Count can't be less than 1");
             }
 
-            if (_goods.ContainsKey(good))
+            if (!_goods.ContainsKey(good))
             {
-                if (_goods[good] > count)
-                {
-                    _goods[good] -= count;
-                }
-                else if (_goods[good] == count)
-                {
-                    _goods.Remove(good);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("Removing good count can't be greater than warehouse contains");
-                }
+                throw new ArgumentException("Warehouse don't contain good");        
             }
-            else
+            
+            if ( count > _goods[good])
             {
-                print("Warehouse don't contain this good");
+                throw new ArgumentOutOfRangeException("Removing good count can't be greater than warehouse contains");       
             }
-        }
 
-        public void ShowGoods()
-        {
-            if (_goods.Count > 0)
+            if (_goods[good] == count)
             {
-                foreach (var good in _goods)
-                {
-                    print($"Name: {good.Key.Name}  Count: {good.Value}");
-                }
+                _goods.Remove(good);
             }
             else
             {
-                print("Warehouse is empty");
-            }
+                 _goods[good] -= count;
+            }           
         }
     }
 
     class Cart
     {
         private Dictionary<Good, int> _goods;
+        private Warehouse _warehouse;
 
-        public Cart()
+        public Cart(Warehouse warehouse)
         {
+            if (warehouse == null)
+            {
+                throw new ArgumentNullException("Warehouse can't be null");
+            }
+
             _goods = new Dictionary<Good, int>();
+            _warehouse = warehouse;
         }
 
         public void Add(Good good, int count)
         {
             if (good == null)
             {
-                throw new ArgumentNullException("Warehouse can't be null");
+                throw new ArgumentNullException("Good can't be null");
             }
 
             if (count < 1)
             {
                 throw new ArgumentOutOfRangeException("Count can't be less than 1");
+            }
+
+            if (!_warehouse.Goods.ContainsKey(good))
+            {
+                throw new ArgumentNullException("Good is not available");
+            }
+
+            if (_warehouse.Goods[good] < count)
+            {
+                throw new ArgumentOutOfRangeException("Not enough goods");
             }
 
             if (_goods.ContainsKey(good))
@@ -150,20 +137,18 @@ public class Store : MonoBehaviour
             {
                 _goods.Add(good, count);
             }
+
+            _warehouse.Remove(good, count);
         }
 
-        public void Show()
+        public void Order()
         {
             if (_goods.Count > 0)
             {
                 foreach (var good in _goods)
                 {
-                    print($"Name: {good.Key.Name}  Count: {good.Value}");
+                    _warehouse.Remove(good.Key, good.Value);
                 }
-            }
-            else
-            {
-                print("Cart is empty");
             }
         }
     }
@@ -172,7 +157,7 @@ public class Store : MonoBehaviour
     {
         private string _name;
 
-        public string Name => _name;
+        public readonly string Name;
 
         public Good(string name)
         {
@@ -182,6 +167,7 @@ public class Store : MonoBehaviour
             }
 
             _name = name;
+            Name = _name;
         }
     }
 }
