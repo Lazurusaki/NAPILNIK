@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Store : MonoBehaviour
-{    
-    class Shop
+{
+    public interface IWarehouse
     {
-        private Warehouse _warehouse;
+        public bool CheckAvailability(Good good, int count);
+        void Remove(Good good, int count);
+    }
+
+    public class Shop
+    {
+        private readonly Warehouse _warehouse;
 
         public Shop(Warehouse warehouse)
         {
@@ -24,11 +30,11 @@ public class Store : MonoBehaviour
         }        
     }
 
-    class Warehouse
+    public class Warehouse : IWarehouse
     {
         private Dictionary<Good, int> _goods;
 
-        public readonly Dictionary<Good, int> Goods;
+        public Dictionary<Good, int> Goods { get; private set; }
 
         public Warehouse()
         {
@@ -86,15 +92,24 @@ public class Store : MonoBehaviour
             }
             else
             {
-                 _goods[good] -= count;
+                _goods[good] -= count;
             }           
+        }
+
+        public bool CheckAvailability(Good good, int count)
+        {
+            if (!_goods.ContainsKey(good) || _goods[good] < count)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 
-    class Cart
+    public class Cart
     {
         private Dictionary<Good, int> _goods;
-        private Warehouse _warehouse;
 
         public Cart(Warehouse warehouse)
         {
@@ -104,10 +119,9 @@ public class Store : MonoBehaviour
             }
 
             _goods = new Dictionary<Good, int>();
-            _warehouse = warehouse;
         }
 
-        public void Add(Good good, int count)
+        public void Add(IWarehouse warehouse, Good good, int count)
         {
             if (good == null)
             {
@@ -119,14 +133,9 @@ public class Store : MonoBehaviour
                 throw new ArgumentOutOfRangeException("Count can't be less than 1");
             }
 
-            if (!_warehouse.Goods.ContainsKey(good))
+            if (!warehouse.CheckAvailability(good, count))
             {
-                throw new ArgumentNullException("Good is not available");
-            }
-
-            if (_warehouse.Goods[good] < count)
-            {
-                throw new ArgumentOutOfRangeException("Not enough goods");
+                throw new ArgumentException("Warehouse don't contain good");
             }
 
             if (_goods.ContainsKey(good))
@@ -137,27 +146,25 @@ public class Store : MonoBehaviour
             {
                 _goods.Add(good, count);
             }
-
-            _warehouse.Remove(good, count);
         }
 
-        public void Order()
+        public void Order(IWarehouse warehouse)
         {
             if (_goods.Count > 0)
             {
                 foreach (var good in _goods)
                 {
-                    _warehouse.Remove(good.Key, good.Value);
+                    warehouse.Remove(good.Key, good.Value);
                 }
             }
         }
     }
 
-    class Good
+    public class Good
     {
         private string _name;
 
-        public readonly string Name;
+        public string Name { get; private set; }
 
         public Good(string name)
         {
@@ -171,3 +178,4 @@ public class Store : MonoBehaviour
         }
     }
 }
+
