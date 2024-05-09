@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
 
 public class Store : MonoBehaviour
 {
     public interface IWarehouse
     {
-        public bool CheckAvailability(Good good, int count);
+        bool CheckAvailability(Good good, int count);
         void Remove(Good good, int count);
     }
 
