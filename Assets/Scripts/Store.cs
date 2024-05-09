@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 public class Store : MonoBehaviour
@@ -32,7 +33,7 @@ public class Store : MonoBehaviour
 
     public class Warehouse : IWarehouse
     {
-        private Dictionary<Good, int> _goods;
+        private readonly Dictionary<Good, int> _goods;
 
         public Dictionary<Good, int> Goods { get; private set; }
 
@@ -109,7 +110,7 @@ public class Store : MonoBehaviour
 
     public class Cart
     {
-        private Dictionary<Good, int> _goods;
+        private readonly Dictionary<Good, int> _goods;
 
         public Cart(Warehouse warehouse)
         {
