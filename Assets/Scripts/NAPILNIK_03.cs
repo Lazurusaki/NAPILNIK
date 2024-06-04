@@ -70,14 +70,11 @@ public class NAPILNIK_03 : MonoBehaviour
 
     public class ConsoleAndFridayFileLogger : ILogger
     {
-        private string _filePath;
-
         private ConsoleLogger consoleLogger;
         private FridayFileLogger fridayFileLogger;
 
         public ConsoleAndFridayFileLogger(string filePath)
         {
-            _filePath = filePath;
             consoleLogger = new ConsoleLogger();
             fridayFileLogger = new FridayFileLogger(filePath);
         }
