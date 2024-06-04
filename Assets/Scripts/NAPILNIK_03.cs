@@ -1,86 +1,109 @@
 using System;
+using System.IO;
 using UnityEngine;
 
-public class NAPILNIK_02 : MonoBehaviour
+public class NAPILNIK_03 : MonoBehaviour
 {
     public class Pathfinder
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public Pathfinder(ILogger logger)
         {
             _logger = logger;
         }
 
-        public void Find()
+        public void Find(string message)
         {
-            print("Finding path...");
+            _logger.Log(message);
         }
     }
 
     public class FileLogger : ILogger
     {
-        public void Log(string message)
+        protected string _filePath;
+
+        public FileLogger(string filePath)
         {
-            print("Log in file");
+            _filePath = filePath;
+        }
+
+        public virtual void Log(string message)
+        {
+            File.WriteAllText(_filePath,message);
         }
     }
 
     public class ConsoleLogger : ILogger
     {
-        public void Log(string message)
+        public virtual void Log(string message)
         {
-            print("Log in console");
+            Console.WriteLine(message);
         }
     }
 
-    public class FridayFileLogger : ILogger
+    public class FridayFileLogger : FileLogger, ILogger
     {
-        public void Log(string message)
+        public FridayFileLogger(string filePath) : base(filePath)
+        {
+        }
+
+        public override void Log(string message)
         {
             if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
             {
-                print($"{DateTime.Now} Log in file");
+                File.WriteAllText(_filePath, message);
             }
         }
     }
 
-    public class FridayConsoleLogger : ILogger
+    public class FridayConsoleLogger : ConsoleLogger, ILogger
     {
-        public void Log(string message)
+        public override void Log(string message)
         {
             if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
             {
-                print($"{DateTime.Now} Log in console");
+                Console.WriteLine(DateTime.Now + message);
             }
         }
     }
 
     public class ConsoleAndFridayFileLogger : ILogger
     {
+        private string _filePath;
+
+        private ConsoleLogger consoleLogger;
+        private FridayFileLogger fridayFileLogger;
+
+        public ConsoleAndFridayFileLogger(string filePath)
+        {
+            _filePath = filePath;
+            consoleLogger = new ConsoleLogger();
+            fridayFileLogger = new FridayFileLogger(filePath);
+        }
+
         public void Log(string message)
         {
-            print("Log in console");
-
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
-            {
-                print($"{DateTime.Now} Log in file");
-            }
+            consoleLogger.Log(message);
+            fridayFileLogger.Log(message);      
         }
     }
 
     private void Start()
     {
-        Pathfinder pathfinder1 = new Pathfinder(new FileLogger());
-        Pathfinder pathfinder2 = new Pathfinder(new ConsoleLogger());
-        Pathfinder pathfinder3 = new Pathfinder(new FridayFileLogger());
-        Pathfinder pathfinder4 = new Pathfinder(new FridayConsoleLogger());
-        Pathfinder pathfinder5 = new Pathfinder(new ConsoleAndFridayFileLogger());
+        string filePath = "C:\\Napilnik\\log";
+        string message = "Pathfinding in process...";
 
-        pathfinder1.Find();
-        pathfinder2.Find();
-        pathfinder3.Find();
-        pathfinder4.Find();
-        pathfinder5.Find();
+        Pathfinder pathfinder1 = new Pathfinder(new FileLogger(filePath));
+        Pathfinder pathfinder2 = new Pathfinder(new ConsoleLogger());
+        Pathfinder pathfinder3 = new Pathfinder(new FridayFileLogger(filePath));
+        Pathfinder pathfinder4 = new Pathfinder(new FridayConsoleLogger());
+        Pathfinder pathfinder5 = new Pathfinder(new ConsoleAndFridayFileLogger(filePath));
+
+        pathfinder1.Find(message);
+        pathfinder2.Find(message);
+        pathfinder3.Find(message);
+        pathfinder4.Find(message);
+        pathfinder5.Find(message);
     }
 }
