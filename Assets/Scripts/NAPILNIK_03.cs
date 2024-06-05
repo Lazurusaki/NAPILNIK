@@ -1,9 +1,13 @@
 using System;
 using System.IO;
-using UnityEngine;
 
-public class NAPILNIK_03 : MonoBehaviour
+namespace NAPILNIK_03
 {
+    public interface ILogger
+    {
+        public void Log(string message);
+    }
+
     public class Pathfinder
     {
         private readonly ILogger _logger;
@@ -21,81 +25,76 @@ public class NAPILNIK_03 : MonoBehaviour
 
     public class FileLogger : ILogger
     {
-        protected string _filePath;
+        protected string FilePath;
 
         public FileLogger(string filePath)
         {
-            _filePath = filePath;
+            FilePath = filePath;
         }
 
-        public virtual void Log(string message)
+        public void Log(string message)
         {
-            File.WriteAllText(_filePath,message);
+            File.WriteAllText(FilePath, message);
         }
     }
 
     public class ConsoleLogger : ILogger
     {
-        public virtual void Log(string message)
+        public void Log(string message)
         {
             Console.WriteLine(message);
         }
     }
 
-    public class FridayFileLogger : FileLogger, ILogger
+    public class SecureLogger : ILogger
     {
-        public FridayFileLogger(string filePath) : base(filePath)
-        {
-        }
+        private ILogger _logger;
+        private DayOfWeek _dayOfWeek;
 
-        public override void Log(string message)
+        public SecureLogger(ILogger logger, DayOfWeek dayOfWeek)
         {
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
-            {
-                File.WriteAllText(_filePath, message);
-            }
-        }
-    }
-
-    public class FridayConsoleLogger : ConsoleLogger, ILogger
-    {
-        public override void Log(string message)
-        {
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
-            {
-                Console.WriteLine(DateTime.Now + message);
-            }
-        }
-    }
-
-    public class ConsoleAndFridayFileLogger : ILogger
-    {
-        private ConsoleLogger consoleLogger;
-        private FridayFileLogger fridayFileLogger;
-
-        public ConsoleAndFridayFileLogger(string filePath)
-        {
-            consoleLogger = new ConsoleLogger();
-            fridayFileLogger = new FridayFileLogger(filePath);
+            _logger = logger;
+            _dayOfWeek = dayOfWeek;
         }
 
         public void Log(string message)
         {
-            consoleLogger.Log(message);
-            fridayFileLogger.Log(message);      
+            if (DateTime.Now.DayOfWeek == _dayOfWeek)
+            {
+                _logger.Log(message);
+            }
         }
     }
 
-    private void Start()
+    public class ConsoleAndSecureFileLogger : ILogger
     {
+        private ConsoleLogger _consoleLogger;
+        private SecureLogger _secureFileLogger;
+
+        public ConsoleAndSecureFileLogger(string filePath, DayOfWeek dayOfWeek)
+        {
+            _consoleLogger = new ConsoleLogger();
+            _secureFileLogger = new SecureLogger(new FileLogger(filePath), dayOfWeek);
+        }
+
+        public void Log(string message)
+        {
+            _consoleLogger.Log(message);
+            _secureFileLogger.Log(message);
+        }
+    }
+
+    private void Test()
+    {
+        DayOfWeek dayOfWeek = DayOfWeek.Friday;
         string filePath = "C:\\Napilnik\\log";
         string message = "Pathfinding in process...";
 
         Pathfinder pathfinder1 = new Pathfinder(new FileLogger(filePath));
         Pathfinder pathfinder2 = new Pathfinder(new ConsoleLogger());
-        Pathfinder pathfinder3 = new Pathfinder(new FridayFileLogger(filePath));
-        Pathfinder pathfinder4 = new Pathfinder(new FridayConsoleLogger());
-        Pathfinder pathfinder5 = new Pathfinder(new ConsoleAndFridayFileLogger(filePath));
+        Pathfinder pathfinder3 = new Pathfinder(new SecureLogger(new FileLogger(filePath), dayOfWeek));
+        Pathfinder pathfinder4 = new Pathfinder(new SecureLogger(new ConsoleLogger(), dayOfWeek));
+        Pathfinder pathfinder5 = new Pathfinder(new ConsoleAndSecureFileLogger(filePath,dayOfWeek));
 
         pathfinder1.Find(message);
         pathfinder2.Find(message);
