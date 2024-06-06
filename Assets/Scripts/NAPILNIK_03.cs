@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace NAPILNIK_03
@@ -10,31 +11,34 @@ namespace NAPILNIK_03
 
     public class Pathfinder
     {
-        private readonly ILogger _logger;
+        private List<ILogger> _loggers;
 
-        public Pathfinder(ILogger logger)
+        public Pathfinder(List<ILogger> loggers)
         {
-            _logger = logger;
+            _loggers = loggers;
         }
 
         public void Find(string message)
         {
-            _logger.Log(message);
+            foreach (ILogger logger in _loggers)
+            {
+                logger.Log(message);
+            }
         }
     }
 
     public class FileLogger : ILogger
     {
-        protected string FilePath;
+        private string _filePath;
 
         public FileLogger(string filePath)
         {
-            FilePath = filePath;
+            _filePath = filePath;
         }
 
         public void Log(string message)
         {
-            File.WriteAllText(FilePath, message);
+            File.WriteAllText(_filePath, message);
         }
     }
 
@@ -66,35 +70,17 @@ namespace NAPILNIK_03
         }
     }
 
-    public class ConsoleAndSecureFileLogger : ILogger
-    {
-        private ConsoleLogger _consoleLogger;
-        private SecureLogger _secureFileLogger;
-
-        public ConsoleAndSecureFileLogger(string filePath, DayOfWeek dayOfWeek)
-        {
-            _consoleLogger = new ConsoleLogger();
-            _secureFileLogger = new SecureLogger(new FileLogger(filePath), dayOfWeek);
-        }
-
-        public void Log(string message)
-        {
-            _consoleLogger.Log(message);
-            _secureFileLogger.Log(message);
-        }
-    }
-
     private void Test()
     {
         DayOfWeek dayOfWeek = DayOfWeek.Friday;
         string filePath = "C:\\Napilnik\\log";
         string message = "Pathfinding in process...";
 
-        Pathfinder pathfinder1 = new Pathfinder(new FileLogger(filePath));
-        Pathfinder pathfinder2 = new Pathfinder(new ConsoleLogger());
-        Pathfinder pathfinder3 = new Pathfinder(new SecureLogger(new FileLogger(filePath), dayOfWeek));
-        Pathfinder pathfinder4 = new Pathfinder(new SecureLogger(new ConsoleLogger(), dayOfWeek));
-        Pathfinder pathfinder5 = new Pathfinder(new ConsoleAndSecureFileLogger(filePath,dayOfWeek));
+        Pathfinder pathfinder1 = new Pathfinder(new List<ILogger>() { new FileLogger(filePath) });
+        Pathfinder pathfinder2 = new Pathfinder(new List<ILogger>() { new ConsoleLogger()});
+        Pathfinder pathfinder3 = new Pathfinder(new List<ILogger>() { new SecureLogger(new FileLogger(filePath), dayOfWeek) });
+        Pathfinder pathfinder4 = new Pathfinder(new List<ILogger>() { new SecureLogger(new ConsoleLogger(), dayOfWeek) });
+        Pathfinder pathfinder5 = new Pathfinder(new List<ILogger>() { new ConsoleLogger(), new SecureLogger(new FileLogger(filePath), dayOfWeek) });
 
         pathfinder1.Find(message);
         pathfinder2.Find(message);
