@@ -114,7 +114,7 @@ namespace NAPILNIK_04
 
         public System3(string key)
         {
-            if (key.Length == 0) throw new ArgumentException("Incorrect system key");
+            if (key.Length == 0) throw new ArgumentException("Secret key can't be empty");
 
             _key = key;
         }
