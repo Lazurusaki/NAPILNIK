@@ -69,7 +69,7 @@ namespace NAPILNIK_03
             }
         }
     }
-
+    /*
     private void Test()
     {
         DayOfWeek dayOfWeek = DayOfWeek.Friday;
@@ -88,4 +88,5 @@ namespace NAPILNIK_03
         pathfinder4.Find(message);
         pathfinder5.Find(message);
     }
+    */
 }
