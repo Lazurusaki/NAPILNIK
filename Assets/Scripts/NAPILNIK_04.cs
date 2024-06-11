@@ -25,13 +25,9 @@ namespace NAPILNIK_04
 
             Order order = new Order(orderID, orderAmount);
 
-            string system1Base = "pay.system1.ru/order?amount=" + order.Amount + "RUB&hash=";
-            string system2Base = "order.system2.ru/pay?hash=";
-            string system3Base = "system3.com/pay?amount=" + order.Amount + "&currency=RUB&hash=";
-
-            System1 system1 = new System1(system1Base, new MD5Hasher());
-            System2 system2 = new System2(system2Base, new MD5Hasher());
-            System3 system3 = new System3(system3Base, secretKey, new SHA1Hasher());
+            System1 system1 = new System1(new MD5Hasher());
+            System2 system2 = new System2(new MD5Hasher());
+            System3 system3 = new System3(secretKey, new SHA1Hasher());
   
             system1.GetPayingLink(order);
             system2.GetPayingLink(order);
@@ -111,47 +107,46 @@ namespace NAPILNIK_04
 
     public class System1: IPaymentSystem
     {
-        protected string _linkBase;
-        protected IHasher _hasher;
+        private IHasher _hasher;
 
-        public System1(string linkBase, IHasher hasher)
-        {
-            if (linkBase == null)
-                throw new ArgumentNullException("LinkBase can't be null");
-
-            if (linkBase.Length < 1)
-                throw new ArgumentException("LinkBase can't be empty");
-
+        public System1(IHasher hasher)
+        {      
             if (hasher == null)
                 throw new ArgumentNullException("Hasher can't be null");
 
-            _linkBase = linkBase;
             _hasher = hasher;
         }
 
-        public virtual string GetPayingLink(Order Order)
+        public string GetPayingLink(Order Order)
         {
-            return _linkBase + _hasher.GetHash(Order.ID.ToString());
+            return "pay.system1.ru/order?amount=" + Order.Amount + "RUB&hash=" + _hasher.GetHash(Order.ID.ToString());
         }    
     }
 
-    public class System2 : System1
+    public class System2 : IPaymentSystem
     {
-        public System2(string linkBase, IHasher hasher) : base(linkBase, hasher)
+        private IHasher _hasher;
+
+        public System2(IHasher hasher)
         {
+            if (hasher == null)
+                throw new ArgumentNullException("Hasher can't be null");
+
+            _hasher = hasher;
         }
 
-        public override string GetPayingLink(Order Order)
+        public  string GetPayingLink(Order Order)
         {
-            return _linkBase + _hasher.GetHash(Order.ID.ToString() + Order.Amount.ToString());
+            return "order.system2.ru/pay?hash=" + _hasher.GetHash(Order.ID.ToString() + Order.Amount.ToString());
         }
     }
 
-    public class System3 : System1
+    public class System3 : IPaymentSystem
     {
         private string _key;
+        private IHasher _hasher;
 
-        public System3(string linkBase, string key, IHasher hasher ) : base(linkBase, hasher)
+        public System3(string key, IHasher hasher)
         {
             if (key == null)
                 throw new ArgumentNullException("Secret key can't be null");
@@ -160,11 +155,16 @@ namespace NAPILNIK_04
                 throw new ArgumentException("Secret key can't be empty");
 
             _key = key;
-        }
 
-        public override string GetPayingLink(Order Order)
+            if (hasher == null)
+                throw new ArgumentNullException("Hasher can't be null");
+ 
+            _hasher=hasher;
+    }
+
+        public string GetPayingLink(Order Order)
         {
-            return _linkBase + _hasher.GetHash(Order.Amount.ToString() + Order.ID.ToString() + _key);
+            return "system3.com/pay?amount=" + Order.Amount + "&currency=RUB&hash=" + _hasher.GetHash(Order.Amount.ToString() + Order.ID.ToString() + _key);
         }
     }
 }
